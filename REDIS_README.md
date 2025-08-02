@@ -71,6 +71,90 @@ sudo systemctl enable redis-server redis-sentinel
 sudo systemctl status redis-server redis-sentinel
 ```
 
+### Redis CLI Management Commands
+
+General info dump:
+```base
+echo "=== Redis Server Info ===" && \
+redis-cli info server | grep -E "redis_version|uptime|connected|used_memory_human" && \
+echo -e "\n=== Price Keys ===" && \
+redis-cli keys "price:*" && \
+echo -e "\n=== Memory Usage ===" && \
+redis-cli info memory | grep -E "used_memory_human|used_memory_peak_human|used_memory_rss_human"
+```
+
+#### 1. Basic Server Information
+```bash
+# Test if Redis is responding
+redis-cli ping
+
+# General server info
+redis-cli info
+
+# Server stats only
+redis-cli info server
+
+# Memory usage information
+redis-cli info memory
+
+# Client connection information
+redis-cli info clients
+
+# Command statistics
+redis-cli info stats
+```
+
+#### 2. Real-time Monitoring
+```bash
+# Monitor all Redis commands in real-time
+redis-cli monitor
+
+# Watch live stats (CPU, memory, etc.)
+redis-cli --stat
+
+# Watch specific keys (e.g., all price keys)
+redis-cli --scan --pattern "price:*"
+```
+
+#### 3. Key Management
+```bash
+# Count total number of keys
+redis-cli dbsize
+
+# List all keys matching a pattern
+redis-cli keys "price:*"
+
+# Get the type of a key
+redis-cli type "price:BTCUSDT"
+
+# Get time to live for a key
+redis-cli ttl "price:BTCUSDT"
+```
+
+#### 4. Memory Analysis
+```bash
+# Get memory usage for a specific key
+redis-cli memory usage "price:BTCUSDT"
+
+# Find biggest keys in the database
+redis-cli --bigkeys
+
+# Get memory doctor report
+redis-cli memory doctor
+```
+
+#### 5. Performance Analysis
+```bash
+# Get slow log entries
+redis-cli slowlog get
+
+# Get slow log length
+redis-cli slowlog len
+
+# Reset slow log
+redis-cli slowlog reset
+```
+
 ### Security
 
 The Redis instance is password-protected. To change the default password:
@@ -86,17 +170,20 @@ redis-cli
 Monitor Redis health:
 ```bash
 # Redis server status
-redis-cli -a your_redis_password info
+redis-cli info
 
 # Sentinel status
 redis-cli -p 26379 sentinel master mymaster
+
+# Quick status check (memory, clients, etc.)
+redis-cli info | grep -E "redis_version|uptime|connected|used_memory_human"
 ```
 
 ### Application Configuration
 
 Set the Redis URL in your environment:
 ```bash
-export REDIS_URL="redis://:<your_redis_password>@127.0.0.1:6379"
+export REDIS_URL="redis://127.0.0.1:6379"
 ```
 
 ### Troubleshooting
@@ -114,6 +201,28 @@ export REDIS_URL="redis://:<your_redis_password>@127.0.0.1:6379"
    - Permission denied: Ensure Redis user has proper permissions
    - Can't connect: Check if Redis is bound to correct interface
    - Memory errors: Verify available system memory and Redis limits
+
+4. Performance issues:
+   - Check slow log: `redis-cli slowlog get`
+   - Monitor command latency: `redis-cli --latency`
+   - Check memory fragmentation: `redis-cli info memory | grep fragmentation`
+
+### Best Practices
+
+1. Regular Monitoring:
+   - Check memory usage regularly
+   - Monitor slow operations
+   - Watch for connection spikes
+
+2. Maintenance:
+   - Regularly check logs for errors
+   - Monitor persistence status
+   - Review and clean up old/unused keys
+
+3. Performance:
+   - Use pattern matching sparingly
+   - Monitor slow operations
+   - Keep an eye on memory fragmentation
 
 ## Application Usage
 
